@@ -11,16 +11,14 @@ import {
 import { TicketService } from './ticket.service';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
-import { AnalyticsDto } from './dto/analytics.dto';
+import { AnalyticsDto, AnalyticsResponse } from './dto/analytics.dto';
 
 @Controller('ticket')
 export class TicketController {
   constructor(private readonly ticketService: TicketService) {}
 
   @Get('analytics')
-  analytics(
-    @Query() analyticsDto : AnalyticsDto
-  ) {
+  analytics(@Query() analyticsDto: AnalyticsDto): Promise<AnalyticsResponse[]> {
     return this.ticketService.analytics(analyticsDto);
   }
 

@@ -24,3 +24,9 @@ export class AnalyticsDto {
   @ApiProperty({ enum: ['Profit', 'Visit'] })
   fetch: any;
 }
+
+export interface AnalyticsResponse {
+  month: string;
+  summaryProfit?: string;
+  summaryVisits?: string;
+}

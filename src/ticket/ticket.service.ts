@@ -1,15 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { AnalyticsDto } from './dto/analytics.dto';
+import { AnalyticsDto, AnalyticsResponse } from './dto/analytics.dto';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { Ticket } from './entities/ticket.entity';
 
 // Declaring enums for the analytics route
 enum FetchType {
-  profit = 'PROFIT',
-  visit = 'VISIT',
+  Profit = 'Profit',
+  Visit = 'Visit',
+}
+
+// Declaring enums for the method type
+enum MethodType {
+  DbAggregation = 'db-aggregation',
+  JsAlgorithm = 'js-algorithm',
 }
 
 @Injectable()
@@ -19,27 +25,24 @@ export class TicketService {
     private ticketsRepository: Repository<Ticket>,
   ) {}
 
-  async analytics(analyticsDto: AnalyticsDto) {
+  async analytics(analyticsDto: AnalyticsDto): Promise<AnalyticsResponse[]> {
     const { method, movieTitle, fromDate, toDate, fetch } = analyticsDto;
 
-    if (method === 'js-algo') {
-      const tickets = await this.ticketsRepository.find();
+    if (method === MethodType.JsAlgorithm) {
+      const tickets: Ticket[] = await this.ticketsRepository.find();
 
-      console.log(new Date(tickets[0].creationDate) >= new Date(fromDate));
-      // new Date(tickets[0].creationDate) <= new Date(toDate),
-
-      const ticketsToAnalyse = tickets
+      const ticketsToAnalyse: Ticket[] = tickets
         .filter((movie) => movie.movieTitle == movieTitle)
         .filter(
           (movie) =>
-            new Date(movie.creationDate) >= fromDate &&
+            new Date(movie.creationDate) >= new Date(fromDate) &&
             new Date(movie.creationDate) <= new Date(toDate),
         );
 
-      let ticketMonth = null;
-      const analytics = [];
+      let ticketMonth: string = null;
+      const analytics: AnalyticsResponse[] = [];
 
-      if (fetch === FetchType.profit) {
+      if (fetch === FetchType.Profit) {
         const revenue = {};
 
         ticketsToAnalyse.forEach((ticket) => {
@@ -52,12 +55,13 @@ export class TicketService {
           revenue[ticketMonth] =
             (revenue[ticketMonth] || 0) + ticket.ticketPrice;
         });
-
+        
+        let profit = null;
         for (const month in revenue) {
-          const profit = revenue[month];
+          profit = revenue[month];
           analytics.push({ month: month, summaryProfit: profit });
         }
-      } else if (fetch === FetchType.visit) {
+      } else if (fetch === FetchType.Visit) {
         const footCount = {};
 
         ticketsToAnalyse.forEach((ticket) => {
@@ -70,7 +74,7 @@ export class TicketService {
           footCount[ticketMonth] = (footCount[ticketMonth] || 0) + 1;
         });
 
-        if (fetch == FetchType.visit) {
+        if (fetch == FetchType.Visit) {
           for (const month in footCount) {
             const visit = footCount[month];
             analytics.push({ month: month, summaryVisits: visit });
@@ -79,16 +83,15 @@ export class TicketService {
       }
 
       return analytics;
-    } else if (method == 'db-aggregation') {
+    } else if (method === MethodType.DbAggregation) {
       // Get the movie details, filtered out by movie and the dates
       let query = `
         SELECT
         MONTHNAME(creationDate) AS month,
       `;
-      if (fetch == 'visit') {
+      if (fetch == FetchType.Visit) {
         query += `COUNT(id) as summaryVisits`;
-      }
-      else{
+      } else if (fetch == FetchType.Profit) {
         query += `SUM(ticketPrice) as summaryProfit`;
       }
 
@@ -102,7 +105,7 @@ export class TicketService {
       `;
 
       const query_data = await this.ticketsRepository.query(query);
-      
+
       return query_data;
     }
   }
