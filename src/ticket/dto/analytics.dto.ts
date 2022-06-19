@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsDate, IsEnum, IsNotEmpty, IsString } from 'class-validator';
+import { IsDateString, IsEnum, IsNotEmpty, IsString } from 'class-validator';
 
 export class AnalyticsDto {
   @IsNotEmpty()
@@ -12,11 +12,11 @@ export class AnalyticsDto {
   movieTitle: string;
 
   @IsNotEmpty()
-  @IsDate()
+  @IsDateString()
   fromDate: Date;
 
   @IsNotEmpty()
-  @IsDate()
+  @IsDateString()
   toDate: Date;
 
   @IsNotEmpty()
