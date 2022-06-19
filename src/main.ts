@@ -3,8 +3,11 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { AuthGuard } from './helpers/auth.guard';
 
+import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));
 
   const config = new DocumentBuilder()
     .setTitle('Movie Ticket Booking')

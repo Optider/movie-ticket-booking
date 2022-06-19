@@ -7,15 +7,18 @@ import {
   Param,
   Delete,
   Query,
+  Inject,
+  LoggerService 
 } from '@nestjs/common';
 import { TicketService } from './ticket.service';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { AnalyticsDto, AnalyticsResponse } from './dto/analytics.dto';
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 
 @Controller('ticket')
 export class TicketController {
-  constructor(private readonly ticketService: TicketService) {}
+  constructor(private readonly ticketService: TicketService, @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: LoggerService) {}
 
   @Get('analytics')
   analytics(@Query() analyticsDto: AnalyticsDto): Promise<AnalyticsResponse[]> {

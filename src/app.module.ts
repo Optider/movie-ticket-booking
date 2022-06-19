@@ -6,6 +6,8 @@ import { TicketModule } from './ticket/ticket.module';
 import { DataSource } from 'typeorm';
 import { Ticket } from './ticket/entities/ticket.entity';
 import { ConfigModule } from '@nestjs/config';
+import { WinstonModule } from 'nest-winston';
+import * as winston from 'winston';
 
 @Module({
   imports: [
@@ -22,6 +24,14 @@ import { ConfigModule } from '@nestjs/config';
     }),
     ConfigModule.forRoot({
       isGlobal: true,
+    }),
+    WinstonModule.forRoot({
+      level: 'error',
+      format: winston.format.json(),
+      transports: [
+        new winston.transports.File({ filename: 'error.log', level: 'error' }),
+        new winston.transports.File({ filename: 'combined.log' }),
+      ],
     }),
   ],
   controllers: [AppController],
