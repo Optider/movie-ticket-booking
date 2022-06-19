@@ -5,6 +5,7 @@ import { AppService } from './app.service';
 import { TicketModule } from './ticket/ticket.module';
 import { DataSource } from 'typeorm';
 import { Ticket } from './ticket/entities/ticket.entity';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -19,9 +20,13 @@ import { Ticket } from './ticket/entities/ticket.entity';
       entities: [Ticket],
       synchronize: false,
     }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
   ],
   controllers: [AppController],
   providers: [AppService],
+  exports: [ConfigModule],
 })
 export class AppModule {
   constructor(private dataSource: DataSource) {}
