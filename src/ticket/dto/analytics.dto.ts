@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { IsDate, IsEnum, IsNotEmpty, IsString } from 'class-validator';
 
@@ -19,7 +20,7 @@ export class AnalyticsDto {
   toDate: Date;
 
   @IsNotEmpty()
-  @Transform((el) => el.value.toUpperCase())
-  @IsEnum({ profit: 'profit', visit: 'visit' })
+  @IsEnum({ Profit: 'Profit', Visit: 'Visit' })
+  @ApiProperty({ enum: ['Profit', 'Visit'] })
   fetch: any;
 }
