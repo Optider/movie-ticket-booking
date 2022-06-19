@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { TicketService } from './ticket.service';
 import { CreateTicketDto } from './dto/create-ticket.dto';
@@ -14,6 +15,16 @@ import { UpdateTicketDto } from './dto/update-ticket.dto';
 @Controller('ticket')
 export class TicketController {
   constructor(private readonly ticketService: TicketService) {}
+
+  @Get('analytics')
+  analytics(
+    @Query('method') method: string,
+    @Query('movieTitle') movieTitle: string,
+    @Query('fromDate') fromDate: string,
+    @Query('toDate') toDate: string,
+  ) {
+    return this.ticketService.analytics(method, movieTitle, fromDate, toDate);
+  }
 
   @Post()
   create(@Body() createTicketDto: CreateTicketDto) {

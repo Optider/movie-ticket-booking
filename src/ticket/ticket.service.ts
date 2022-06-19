@@ -12,6 +12,59 @@ export class TicketService {
     private ticketsRepository: Repository<Ticket>,
   ) {}
 
+  async analytics(
+    method: string,
+    movieTitle: string,
+    fromDate: string,
+    toDate: string,
+  ) {
+    if (method === 'js-algo') {
+      const tickets = await this.ticketsRepository.find();
+
+      const ticketsToAnalyse = tickets
+        .filter((movie) => movie.movieTitle == movieTitle)
+        .filter(
+          (movie) =>
+            movie.creationDate.toString() >= fromDate &&
+            movie.creationDate.toString() <= toDate,
+        );
+
+      const revenue = {};
+      const footCount = {};
+
+      let ticketMonth = undefined;
+      ticketsToAnalyse.forEach((ticket) => {
+        ticketMonth = new Date(ticket.creationDate).toLocaleString('default', {
+          month: 'long',
+        });
+        revenue[ticketMonth] = (revenue[ticketMonth] || 0) + ticket.ticketPrice;
+        footCount[ticketMonth] = (footCount[ticketMonth] || 0) + 1;
+      });
+
+      const revenueAnalytics = [];
+      const footCountAnalytics = [];
+
+      for (const month in revenue) {
+        const profit = revenue[month];
+        revenueAnalytics.push({ month: month, summaryProfit: profit });
+      }
+
+      for (const month in footCount) {
+        const visit = footCount[month];
+        footCountAnalytics.push({ month: month, summaryVisits: visit });
+      }
+
+      const analytics = {
+        revenue: revenueAnalytics,
+        visit: footCountAnalytics,
+      };
+
+      return analytics;
+    } else if (method == 'db-aggregation') {
+      console.log('todo');
+    }
+  }
+
   create(createTicketDto: CreateTicketDto) {
     if (createTicketDto.creationDate === undefined) {
       const today = new Date();
