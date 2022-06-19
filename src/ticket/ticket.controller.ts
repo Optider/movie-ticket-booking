@@ -11,6 +11,7 @@ import {
 import { TicketService } from './ticket.service';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
+import { AnalyticsDto } from './dto/analytics.dto';
 
 @Controller('ticket')
 export class TicketController {
@@ -18,12 +19,9 @@ export class TicketController {
 
   @Get('analytics')
   analytics(
-    @Query('method') method: string,
-    @Query('movieTitle') movieTitle: string,
-    @Query('fromDate') fromDate: string,
-    @Query('toDate') toDate: string,
+    @Query() analyticsDto : AnalyticsDto
   ) {
-    return this.ticketService.analytics(method, movieTitle, fromDate, toDate);
+    return this.ticketService.analytics(analyticsDto);
   }
 
   @Post()

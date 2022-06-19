@@ -17,7 +17,7 @@ import { Ticket } from './ticket/entities/ticket.entity';
       password: '',
       database: 'test',
       entities: [Ticket],
-      synchronize: true, // false // in prod
+      synchronize: false,
     }),
   ],
   controllers: [AppController],

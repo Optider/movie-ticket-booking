@@ -1,9 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { AnalyticsDto } from './dto/analytics.dto';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { Ticket } from './entities/ticket.entity';
+
+// Declaring enums for the analytics route
+enum FetchType {
+  profit = 'PROFIT',
+  visit = 'VISIT',
+}
 
 @Injectable()
 export class TicketService {
@@ -12,56 +19,91 @@ export class TicketService {
     private ticketsRepository: Repository<Ticket>,
   ) {}
 
-  async analytics(
-    method: string,
-    movieTitle: string,
-    fromDate: string,
-    toDate: string,
-  ) {
+  async analytics(analyticsDto: AnalyticsDto) {
+    const { method, movieTitle, fromDate, toDate, fetch } = analyticsDto;
+
     if (method === 'js-algo') {
       const tickets = await this.ticketsRepository.find();
+
+      console.log(new Date(tickets[0].creationDate) >= new Date(fromDate));
+      // new Date(tickets[0].creationDate) <= new Date(toDate),
 
       const ticketsToAnalyse = tickets
         .filter((movie) => movie.movieTitle == movieTitle)
         .filter(
           (movie) =>
-            movie.creationDate.toString() >= fromDate &&
-            movie.creationDate.toString() <= toDate,
+            new Date(movie.creationDate) >= fromDate &&
+            new Date(movie.creationDate) <= new Date(toDate),
         );
 
-      const revenue = {};
-      const footCount = {};
+      let ticketMonth = null;
+      const analytics = [];
 
-      let ticketMonth = undefined;
-      ticketsToAnalyse.forEach((ticket) => {
-        ticketMonth = new Date(ticket.creationDate).toLocaleString('default', {
-          month: 'long',
+      if (fetch === FetchType.profit) {
+        const revenue = {};
+
+        ticketsToAnalyse.forEach((ticket) => {
+          ticketMonth = new Date(ticket.creationDate).toLocaleString(
+            'default',
+            {
+              month: 'long',
+            },
+          );
+          revenue[ticketMonth] =
+            (revenue[ticketMonth] || 0) + ticket.ticketPrice;
         });
-        revenue[ticketMonth] = (revenue[ticketMonth] || 0) + ticket.ticketPrice;
-        footCount[ticketMonth] = (footCount[ticketMonth] || 0) + 1;
-      });
 
-      const revenueAnalytics = [];
-      const footCountAnalytics = [];
+        for (const month in revenue) {
+          const profit = revenue[month];
+          analytics.push({ month: month, summaryProfit: profit });
+        }
+      } else if (fetch === FetchType.visit) {
+        const footCount = {};
 
-      for (const month in revenue) {
-        const profit = revenue[month];
-        revenueAnalytics.push({ month: month, summaryProfit: profit });
+        ticketsToAnalyse.forEach((ticket) => {
+          ticketMonth = new Date(ticket.creationDate).toLocaleString(
+            'default',
+            {
+              month: 'long',
+            },
+          );
+          footCount[ticketMonth] = (footCount[ticketMonth] || 0) + 1;
+        });
+
+        if (fetch == FetchType.visit) {
+          for (const month in footCount) {
+            const visit = footCount[month];
+            analytics.push({ month: month, summaryVisits: visit });
+          }
+        }
       }
-
-      for (const month in footCount) {
-        const visit = footCount[month];
-        footCountAnalytics.push({ month: month, summaryVisits: visit });
-      }
-
-      const analytics = {
-        revenue: revenueAnalytics,
-        visit: footCountAnalytics,
-      };
 
       return analytics;
     } else if (method == 'db-aggregation') {
-      console.log('todo');
+      // Get the movie details, filtered out by movie and the dates
+      let query = `
+        SELECT
+        MONTHNAME(creationDate) AS month,
+      `;
+      if (fetch == 'visit') {
+        query += `COUNT(id) as summaryVisits`;
+      }
+      else{
+        query += `SUM(ticketPrice) as summaryProfit`;
+      }
+
+      query += `
+        FROM
+        ticket
+        WHERE movieTitle = '${movieTitle}'
+        AND DATE(creationDate) >= '${fromDate}'
+        AND DATE(creationDate) <= '${toDate}'
+        GROUP BY month  
+      `;
+
+      const query_data = await this.ticketsRepository.query(query);
+      
+      return query_data;
     }
   }
 
