@@ -11,7 +11,7 @@
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+The APIs for a movie ticket booking portal.
 
 ## Installation
 
@@ -31,6 +31,10 @@ $ npm run start:dev
 # production mode
 $ npm run start:prod
 ```
+
+## View API docs
+
+Start the app and go to <http://localhost:3000/api>, to view swagger docs.
 
 ## Stay in touch
 
