@@ -5,6 +5,7 @@ import { AuthGuard } from './helpers/auth.guard';
 
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -22,6 +23,9 @@ async function bootstrap() {
   app.useGlobalGuards(new AuthGuard());
 
   app.useGlobalPipes(new ValidationPipe());
-  await app.listen(3000);
+
+  const configService = new ConfigService();
+
+  await app.listen(configService.get<string>('PORT') || 3000);
 }
 bootstrap();

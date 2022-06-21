@@ -5,20 +5,22 @@ import { AppService } from './app.service';
 import { TicketModule } from './ticket/ticket.module';
 import { DataSource } from 'typeorm';
 import { Ticket } from './ticket/entities/ticket.entity';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { WinstonModule } from 'nest-winston';
 import * as winston from 'winston';
 import { APP_PIPE } from '@nestjs/core';
+
+const configService = new ConfigService();
 
 @Module({
   imports: [
     TicketModule,
     TypeOrmModule.forRoot({
       type: 'mysql',
-      host: 'localhost',
-      port: 3306,
-      username: 'root',
-      password: '',
+      host: configService.get<string>('DB_HOST') || 'localhost',
+      port: configService.get<number>('DB_PORT') || 3306,
+      username: configService.get<string>('DB_USERNAME') || 'root',
+      password: configService.get<string>('DB_PASSWORD') || '',
       database: 'test',
       entities: [Ticket],
       synchronize: false,
